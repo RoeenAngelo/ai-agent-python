@@ -19,15 +19,15 @@ def get_files_info(working_directory, directory="."):
     try:
         # Iterate over each item in the directory
         for content in contents:
-            filepath = os.path.join(target_dir, content)
+            file_path = os.path.join(target_dir, content)
             
             # Determine if it's a directory
-            is_dir = os.path.isdir(filepath)
+            is_dir = os.path.isdir(file_path)
             
             # Get the file size. For directories, size varies by OS, 
             # often representing the size of the directory entry itself.
             try:
-                file_size = os.path.getsize(filepath)
+                file_size = os.path.getsize(file_path)
             except OSError:
                 file_size = 0 # Handle cases where size might be inaccessible
 

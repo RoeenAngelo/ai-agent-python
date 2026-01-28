@@ -8,6 +8,7 @@ import argparse
 def main():
     parser = argparse.ArgumentParser(description="AI_Agent")
     parser.add_argument("user_prompt", type=str, help="Prompt for Gemini")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
     args = parser.parse_args()
     
     load_dotenv()
@@ -29,9 +30,13 @@ def main():
 
     prompt_tokens = response.usage_metadata.prompt_token_count
     response_tokens = response.usage_metadata.candidates_token_count
-    print(f"Prompt tokens:{prompt_tokens}")
-    print(f"Response tokens:{response_tokens}")
-    print(f"Response: {response.text}")
+
+    if args.verbose:
+        print(f"User prompt: {args.user_prompt}")
+        print(f"Prompt tokens:{prompt_tokens}")
+        print(f"Response tokens:{response_tokens}")
+    else:
+        print(f"Response: {response.text}")
 
 
 if __name__ == "__main__":

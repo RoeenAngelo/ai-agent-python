@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 import argparse
-
+from prompts import system_prompt
 
 def main():
     parser = argparse.ArgumentParser(description="AI_Agent")
@@ -20,10 +20,11 @@ def main():
     messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
     response = client.models.generate_content(
         model = "gemini-2.5-flash",
-        contents = messages
+        contents = messages,
+        config=types.GenerateContentConfig(system_instruction=system_prompt,
+                                           temperature=0
+                                           )
     )
-
-    # "Why is Boot.dev such a great place to learn backend development? Use one paragraph maximum."
 
     if not response.usage_metadata:
         raise RuntimeError("usage_metadata not available")

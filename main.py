@@ -18,6 +18,14 @@ def main():
 
     client = genai.Client(api_key=api_key)
     messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
+
+    if args.verbose:
+        print(f"User prompt: {args.user_prompt}\n")
+
+    generate_content(client, messages, args.verbose)
+
+
+def generate_content(client, messages, verbose):
     response = client.models.generate_content(
         model = "gemini-2.5-flash",
         contents = messages,
@@ -25,20 +33,14 @@ def main():
                                            temperature=0
                                            )
     )
-
     if not response.usage_metadata:
-        raise RuntimeError("usage_metadata not available")
+        raise RuntimeError("Gemini API response appears to be malformed")
 
-    prompt_tokens = response.usage_metadata.prompt_token_count
-    response_tokens = response.usage_metadata.candidates_token_count
-
-    if args.verbose:
-        print(f"User prompt: {args.user_prompt}")
-        print(f"Prompt tokens:{prompt_tokens}")
-        print(f"Response tokens:{response_tokens}")
-    else:
-        print(f"Response: {response.text}")
-
+    if verbose:
+        print("Prompt tokens:", response.usage_metadata.prompt_token_count)
+        print("Response tokens:", response.usage_metadata.candidates_token_count)
+    print("Response:")
+    print(response.text)
 
 if __name__ == "__main__":
     main()

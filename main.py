@@ -24,8 +24,12 @@ def main():
     if args.verbose:
         print(f"User prompt: {args.user_prompt}\n")
 
-    generate_content(client, messages, args.verbose)
-
+    for _ in range(20):
+       done = generate_content(client, messages, args.verbose)
+       if done:
+           break
+    else:
+        print("Agent hit maximum iterations without producing a final response.")
 
 def generate_content(client, messages, verbose):
     response = client.models.generate_content(
@@ -46,11 +50,10 @@ def generate_content(client, messages, verbose):
     if not response.function_calls:
         print("Response:")
         print(response.text)
-        return
+        return True
     
     function_results = []
     for function_call in response.function_calls:
-        # print(f"Calling function: {function_call.name}({function_call.args})") 
         function_call_result = call_function(function_call, verbose=verbose) 
 
         if not function_call_result.parts:
@@ -63,11 +66,18 @@ def generate_content(client, messages, verbose):
         
         if part.function_response.response is None:
             raise Exception("function call returned no response payload")
-        
-        function_results.append(part)
 
         if verbose:
             print(f"-> {part.function_response.response}")
+        
+        function_results.append(part)
+
+    if response.candidates:
+            for candidate in response.candidates:
+                messages.append(candidate.content)
+    if function_results:
+        messages.append(types.Content(role="user", parts=function_results))
+    return False
 
 if __name__ == "__main__":
     main()

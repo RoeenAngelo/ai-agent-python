@@ -4,7 +4,7 @@ from google import genai
 from google.genai import types
 import argparse
 from prompts import system_prompt
-from config import MODEL
+from config import MODEL, MAX_ITERS
 from call_function import available_functions, call_function
 
 def main():
@@ -24,12 +24,12 @@ def main():
     if args.verbose:
         print(f"User prompt: {args.user_prompt}\n")
 
-    for _ in range(20):
+    for _ in range(MAX_ITERS):
        done = generate_content(client, messages, args.verbose)
        if done:
            break
     else:
-        print("Agent hit maximum iterations without producing a final response.")
+        print(f"Agent hit maximum iterations of {MAX_ITERS} without producing a final response.")
 
 def generate_content(client, messages, verbose):
     response = client.models.generate_content(

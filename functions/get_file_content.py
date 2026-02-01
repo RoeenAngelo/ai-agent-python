@@ -1,5 +1,7 @@
 import os
 from config import MAX_CHARS
+from google.genai import types
+
 
 
 def get_file_content(working_directory, file_path):
@@ -24,3 +26,18 @@ def get_file_content(working_directory, file_path):
         return f'Error reading file "{file_path}": {e}'
     
     return content
+
+schema_get_file_content = types.FunctionDeclaration(
+    name="get_file_content",
+    description="Read the files content in a specified directory relative to the working directory",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="Relative path (from the working directory) to the text file whose contents should be returned)",
+            ),
+        },
+        required=["file_path"],
+    ),
+)

@@ -4,6 +4,8 @@ from google import genai
 from google.genai import types
 import argparse
 from prompts import system_prompt
+from config import MODEL
+from call_function import available_functions, call_function
 
 def main():
     parser = argparse.ArgumentParser(description="AI_Agent")
@@ -27,11 +29,12 @@ def main():
 
 def generate_content(client, messages, verbose):
     response = client.models.generate_content(
-        model = "gemini-2.5-flash",
-        contents = messages,
+        model=MODEL,
+        contents=messages,
         config=types.GenerateContentConfig(system_instruction=system_prompt,
-                                           temperature=0
-                                           )
+                                           temperature=0,
+                                           tools=[available_functions],
+                                           ),
     )
     if not response.usage_metadata:
         raise RuntimeError("Gemini API response appears to be malformed")
@@ -39,8 +42,32 @@ def generate_content(client, messages, verbose):
     if verbose:
         print("Prompt tokens:", response.usage_metadata.prompt_token_count)
         print("Response tokens:", response.usage_metadata.candidates_token_count)
-    print("Response:")
-    print(response.text)
+    
+    if not response.function_calls:
+        print("Response:")
+        print(response.text)
+        return
+    
+    function_results = []
+    for function_call in response.function_calls:
+        # print(f"Calling function: {function_call.name}({function_call.args})") 
+        function_call_result = call_function(function_call, verbose=verbose) 
+
+        if not function_call_result.parts:
+            raise Exception("function call returned no parts")
+
+        part = function_call_result.parts[0]
+
+        if part.function_response is None:
+            raise Exception("function call returned no function_response")
+        
+        if part.function_response.response is None:
+            raise Exception("function call returned no response payload")
+        
+        function_results.append(part)
+
+        if verbose:
+            print(f"-> {part.function_response.response}")
 
 if __name__ == "__main__":
     main()
